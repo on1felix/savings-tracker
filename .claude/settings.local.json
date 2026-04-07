@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:vercel-black-ten.vercel.app)",
+      "Bash(npm init:*)"
+    ]
+  }
+}

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P File Transfer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>P2P File Transfer</h1>
+            <p>Прямая передача файлов без сервера</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="send">Отправить</button>
+            <button class="tab" data-tab="receive">Получить</button>
+        </div>
+
+        <div class="tab-content" id="send-tab">
+            <div class="upload-area" id="uploadArea">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <p>Перетащите файл сюда или нажмите для выбора</p>
+                <input type="file" id="fileInput" hidden>
+            </div>
+
+            <div class="file-info hidden" id="fileInfo">
+                <div class="file-details">
+                    <div class="file-icon">📄</div>
+                    <div class="file-meta">
+                        <div class="file-name" id="fileName"></div>
+                        <div class="file-size" id="fileSize"></div>
+                    </div>
+                </div>
+                <button class="btn-remove" id="removeFile">✕</button>
+            </div>
+
+            <div class="code-display hidden" id="codeDisplay">
+                <div class="code-label">Код для получения:</div>
+                <div class="code-value" id="transferCode"></div>
+                <button class="btn-copy" id="copyCode">Копировать</button>
+            </div>
+
+            <div class="transfer-progress hidden" id="sendProgress">
+                <div class="progress-header">
+                    <span>Отправка файла...</span>
+                    <span class="progress-percent" id="sendPercent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="sendProgressFill"></div>
+                </div>
+                <div class="transfer-stats">
+                    <div class="stat">
+                        <span class="stat-label">Скорость:</span>
+                        <span class="stat-value" id="sendSpeed">0 MB/s</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Передано:</span>
+                        <span class="stat-value" id="sendTransferred">0 MB / 0 MB</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Осталось:</span>
+                        <span class="stat-value" id="sendRemaining">--:--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="success-message hidden" id="sendSuccess">
+                <div class="success-icon">✓</div>
+                <div class="success-text">Файл успешно отправлен!</div>
+                <button class="btn-primary" id="sendAnother">Отправить еще</button>
+            </div>
+        </div>
+
+        <div class="tab-content hidden" id="receive-tab">
+            <div class="code-input-area">
+                <label for="codeInput">Введите код:</label>
+                <input type="text" id="codeInput" placeholder="6-значный код" maxlength="6">
+                <button class="btn-primary" id="connectBtn">Подключиться</button>
+            </div>
+
+            <div class="file-preview hidden" id="filePreview">
+                <div class="file-details">
+                    <div class="file-icon">📄</div>
+                    <div class="file-meta">
+                        <div class="file-name" id="receiveFileName"></div>
+                        <div class="file-size" id="receiveFileSize"></div>
+                    </div>
+                </div>
+                <button class="btn-primary" id="acceptFile">Принять файл</button>
+            </div>
+
+            <div class="transfer-progress hidden" id="receiveProgress">
+                <div class="progress-header">
+                    <span>Получение файла...</span>
+                    <span class="progress-percent" id="receivePercent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="receiveProgressFill"></div>
+                </div>
+                <div class="transfer-stats">
+                    <div class="stat">
+                        <span class="stat-label">Скорость:</span>
+                        <span class="stat-value" id="receiveSpeed">0 MB/s</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Получено:</span>
+                        <span class="stat-value" id="receiveTransferred">0 MB / 0 MB</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Осталось:</span>
+                        <span class="stat-value" id="receiveRemaining">--:--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="success-message hidden" id="receiveSuccess">
+                <div class="success-icon">✓</div>
+                <div class="success-text">Файл успешно получен!</div>
+                <button class="btn-primary" id="receiveAnother">Получить еще</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/app.js"></script>
+</body>
+</html>
