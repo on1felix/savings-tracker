@@ -101,22 +101,43 @@ function init() {
 }
 
 // Проверка URL на наличие ID сниппета
-function checkUrlForSnippet() {
+async function checkUrlForSnippet() {
     const urlParams = new URLSearchParams(window.location.search);
     const snippetId = urlParams.get('id');
+    const shareId = urlParams.get('s');
 
-    // Проверяем hash для встроенного кода
+    // Проверяем короткую ссылку с backend
+    if (shareId) {
+        try {
+            const response = await fetch(`/api/snippet?id=${shareId}`);
+            if (response.ok) {
+                const data = await response.json();
+                openViewModal({
+                    id: 'shared',
+                    name: data.name,
+                    code: data.code
+                });
+                return;
+            }
+        } catch (error) {
+            console.error('Error fetching shared snippet:', error);
+        }
+    }
+
+    // Проверяем hash для встроенного кода (старый способ)
     const hash = window.location.hash.substring(1);
     if (hash) {
         try {
-            const decoded = atob(hash);
-            const data = JSON.parse(decoded);
-            openViewModal({
-                id: 'shared',
-                name: data.name || 'Shared Code',
-                code: data.code
-            });
-            return;
+            const decompressed = LZString.decompressFromEncodedURIComponent(hash);
+            if (decompressed) {
+                const data = JSON.parse(decompressed);
+                openViewModal({
+                    id: 'shared',
+                    name: data.name || 'Shared Code',
+                    code: data.code
+                });
+                return;
+            }
         } catch (e) {
             console.error('Failed to decode shared code:', e);
         }
@@ -241,7 +262,6 @@ function openViewModal(snippet) {
     if (snippet.id !== 'shared') {
         const url = `${window.location.origin}${window.location.pathname}?id=${snippet.id}`;
         window.history.pushState({}, '', url);
-        shareLinkInput.value = url;
     }
 
     viewModal.style.display = 'block';
@@ -261,17 +281,34 @@ copyBtn.addEventListener('click', () => {
 });
 
 // Показать ссылку для шаринга
-shareBtn.addEventListener('click', () => {
-    // Создаем ссылку с встроенным кодом для ИИ
+shareBtn.addEventListener('click', async () => {
     const snippet = snippets.find(s => s.id === currentSnippetId);
+
     if (snippet) {
-        const data = {
-            name: snippet.name,
-            code: snippet.code
-        };
-        const encoded = btoa(JSON.stringify(data));
-        const shareUrl = `${window.location.origin}${window.location.pathname}#${encoded}`;
-        shareLinkInput.value = shareUrl;
+        try {
+            // Отправляем код на backend
+            const response = await fetch('/api/snippet', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: snippet.name,
+                    code: snippet.code
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const shareUrl = `${window.location.origin}${window.location.pathname}?s=${data.id}`;
+                shareLinkInput.value = shareUrl;
+            } else {
+                alert('Ошибка при создании ссылки');
+            }
+        } catch (error) {
+            console.error('Error creating share link:', error);
+            alert('Ошибка при создании ссылки');
+        }
     }
 
     shareLink.style.display = shareLink.style.display === 'none' ? 'flex' : 'none';
