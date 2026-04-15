@@ -1,449 +1,295 @@
-import Peer from 'peerjs';
+// Пиксельный фон
+const canvas = document.getElementById('pixelCanvas');
+const ctx = canvas.getContext('2d');
 
-class FileTransfer {
-    constructor() {
-        this.peer = null;
-        this.connection = null;
-        this.file = null;
-        this.transferCode = null;
-        this.isSender = false;
-        this.chunks = [];
-        this.receivedSize = 0;
-        this.totalSize = 0;
-        this.startTime = null;
-        this.lastUpdate = null;
-        this.lastBytes = 0;
-        this.fileHandle = null;
-        this.chunkSize = 16384; // 16KB chunks
+let pixels = [];
+const pixelSize = 20;
+let mouseX = -1000;
+let mouseY = -1000;
 
-        this.initializeUI();
-    }
+function initCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-    initializeUI() {
-        // Tabs
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => this.switchTab(tab.dataset.tab));
-        });
+    const cols = Math.ceil(canvas.width / pixelSize);
+    const rows = Math.ceil(canvas.height / pixelSize);
 
-        // Upload area
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-
-        uploadArea.addEventListener('click', () => fileInput.click());
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('drag-over');
-        });
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('drag-over');
-        });
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('drag-over');
-            if (e.dataTransfer.files.length) {
-                this.handleFileSelect(e.dataTransfer.files[0]);
-            }
-        });
-
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length) {
-                this.handleFileSelect(e.target.files[0]);
-            }
-        });
-
-        // Remove file
-        document.getElementById('removeFile').addEventListener('click', () => {
-            this.resetSender();
-        });
-
-        // Copy code
-        document.getElementById('copyCode').addEventListener('click', () => {
-            navigator.clipboard.writeText(this.transferCode);
-            const btn = document.getElementById('copyCode');
-            btn.textContent = 'Скопировано!';
-            setTimeout(() => btn.textContent = 'Копировать', 2000);
-        });
-
-        // Receiver
-        document.getElementById('connectBtn').addEventListener('click', () => {
-            const code = document.getElementById('codeInput').value.trim();
-            if (code.length === 6) {
-                this.connectToSender(code);
-            }
-        });
-
-        document.getElementById('codeInput').addEventListener('input', (e) => {
-            e.target.value = e.target.value.replace(/[^0-9]/g, '');
-        });
-
-        document.getElementById('acceptFile').addEventListener('click', () => {
-            this.startReceiving();
-        });
-
-        // Reset buttons
-        document.getElementById('sendAnother').addEventListener('click', () => {
-            this.resetSender();
-        });
-
-        document.getElementById('receiveAnother').addEventListener('click', () => {
-            this.resetReceiver();
-        });
-    }
-
-    switchTab(tab) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
-
-        document.getElementById('send-tab').classList.toggle('hidden', tab !== 'send');
-        document.getElementById('receive-tab').classList.toggle('hidden', tab !== 'receive');
-    }
-
-    handleFileSelect(file) {
-        this.file = file;
-        this.isSender = true;
-
-        document.getElementById('uploadArea').classList.add('hidden');
-        document.getElementById('fileInfo').classList.remove('hidden');
-        document.getElementById('codeDisplay').classList.remove('hidden');
-
-        document.getElementById('fileName').textContent = file.name;
-        document.getElementById('fileSize').textContent = this.formatBytes(file.size);
-
-        this.generateCode();
-        this.setupSender();
-    }
-
-    generateCode() {
-        this.transferCode = Math.floor(100000 + Math.random() * 900000).toString();
-        document.getElementById('transferCode').textContent = this.transferCode;
-    }
-
-    async setupSender() {
-        // Create PeerJS instance with the code as ID
-        this.peer = new Peer('sender-' + this.transferCode, {
-            host: '0.peerjs.com',
-            port: 443,
-            secure: true,
-            config: {
-                iceServers: [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' }
-                ]
-            }
-        });
-
-        this.peer.on('open', (id) => {
-            console.log('Sender peer ID:', id);
-        });
-
-        this.peer.on('connection', (conn) => {
-            this.connection = conn;
-            this.showSenderNotification('Получатель подключился!');
-
-            conn.on('open', () => {
-                console.log('Connection opened');
-                this.sendFileMetadata();
+    pixels = [];
+    for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+            pixels.push({
+                x: x * pixelSize,
+                y: y * pixelSize,
+                baseOpacity: Math.random() * 0.3,
+                opacity: Math.random() * 0.3,
+                pulseSpeed: 0.5 + Math.random() * 1.5,
+                pulseOffset: Math.random() * Math.PI * 2
             });
-
-            conn.on('data', (data) => {
-                if (data.type === 'ready') {
-                    this.showSenderNotification('Получатель готов к приёму!');
-                    document.getElementById('codeDisplay').classList.add('hidden');
-                    document.getElementById('sendProgress').classList.remove('hidden');
-                    this.startSending();
-                } else if (data.type === 'progress') {
-                    this.updateSendProgress(data.received, data.total);
-                }
-            });
-
-            conn.on('error', (err) => {
-                console.error('Connection error:', err);
-            });
-        });
-
-        this.peer.on('error', (err) => {
-            console.error('Peer error:', err);
-            alert('Ошибка подключения: ' + err.message);
-        });
-    }
-
-    async connectToSender(code) {
-        this.transferCode = code;
-
-        document.getElementById('codeInput').disabled = true;
-        document.getElementById('connectBtn').disabled = true;
-        document.getElementById('connectBtn').textContent = 'Подключение...';
-
-        // Create PeerJS instance
-        this.peer = new Peer({
-            host: '0.peerjs.com',
-            port: 443,
-            secure: true,
-            config: {
-                iceServers: [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' }
-                ]
-            }
-        });
-
-        this.peer.on('open', () => {
-            // Connect to sender
-            this.connection = this.peer.connect('sender-' + code);
-
-            this.connection.on('open', () => {
-                console.log('Connected to sender');
-            });
-
-            this.connection.on('data', async (data) => {
-                if (data.type === 'metadata') {
-                    this.file = data;
-                    document.getElementById('receiveFileName').textContent = data.name;
-                    document.getElementById('receiveFileSize').textContent = this.formatBytes(data.size);
-                    document.querySelector('.code-input-area').classList.add('hidden');
-                    document.getElementById('filePreview').classList.remove('hidden');
-                    this.totalSize = data.size;
-                } else if (data.type === 'chunk') {
-                    // Receiving file chunk
-                    this.chunks.push(data.data);
-                    this.receivedSize += data.data.byteLength;
-
-                    this.updateReceiveProgress(this.receivedSize, this.totalSize);
-
-                    // Send progress back to sender
-                    this.connection.send({
-                        type: 'progress',
-                        received: this.receivedSize,
-                        total: this.totalSize
-                    });
-
-                    if (this.receivedSize >= this.totalSize) {
-                        await this.completeReceive();
-                    }
-                }
-            });
-
-            this.connection.on('error', (err) => {
-                console.error('Connection error:', err);
-                alert('Ошибка подключения к отправителю');
-            });
-        });
-
-        this.peer.on('error', (err) => {
-            console.error('Peer error:', err);
-            alert('Не удалось подключиться. Проверьте код.');
-        });
-    }
-
-    showSenderNotification(message) {
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 16px 24px;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-            z-index: 1000;
-        `;
-        notification.textContent = message;
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
-    }
-
-    async startReceiving() {
-        // Use File System Access API to choose save location
-        try {
-            const options = {
-                suggestedName: this.file.name,
-                types: [{
-                    description: 'All Files',
-                    accept: { '*/*': [] }
-                }]
-            };
-
-            this.fileHandle = await window.showSaveFilePicker(options);
-
-            document.getElementById('filePreview').classList.add('hidden');
-            document.getElementById('receiveProgress').classList.remove('hidden');
-
-            this.startTime = Date.now();
-            this.lastUpdate = Date.now();
-            this.receivedSize = 0;
-            this.lastBytes = 0;
-            this.chunks = [];
-
-            // Notify sender that receiver is ready
-            this.connection.send({ type: 'ready' });
-        } catch (err) {
-            if (err.name !== 'AbortError') {
-                console.error('Error selecting file location:', err);
-                alert('Не удалось выбрать место сохранения файла');
-            }
         }
-    }
-
-    sendFileMetadata() {
-        const metadata = {
-            type: 'metadata',
-            name: this.file.name,
-            size: this.file.size,
-            mimeType: this.file.type
-        };
-
-        this.connection.send(metadata);
-    }
-
-    async startSending() {
-        this.startTime = Date.now();
-        this.lastUpdate = Date.now();
-        this.lastBytes = 0;
-
-        const reader = new FileReader();
-        let offset = 0;
-
-        const sendChunk = () => {
-            const slice = this.file.slice(offset, offset + this.chunkSize);
-            reader.readAsArrayBuffer(slice);
-        };
-
-        reader.onload = (e) => {
-            if (this.connection && this.connection.open) {
-                this.connection.send({
-                    type: 'chunk',
-                    data: e.target.result
-                });
-                offset += e.target.result.byteLength;
-
-                if (offset < this.file.size) {
-                    setTimeout(sendChunk, 10);
-                } else {
-                    this.completeSend();
-                }
-            }
-        };
-
-        sendChunk();
-    }
-
-    updateSendProgress(sent, total) {
-        const progress = (sent / total) * 100;
-        const now = Date.now();
-        const timeDiff = (now - this.lastUpdate) / 1000;
-
-        if (timeDiff >= 0.1) {
-            const bytesDiff = sent - this.lastBytes;
-            const speed = bytesDiff / timeDiff;
-
-            document.getElementById('sendProgressFill').style.width = progress + '%';
-            document.getElementById('sendPercent').textContent = Math.round(progress) + '%';
-            document.getElementById('sendSpeed').textContent = this.formatBytes(speed) + '/s';
-            document.getElementById('sendTransferred').textContent =
-                `${this.formatBytes(sent)} / ${this.formatBytes(total)}`;
-
-            const remaining = (total - sent) / speed;
-            document.getElementById('sendRemaining').textContent = this.formatTime(remaining);
-
-            this.lastUpdate = now;
-            this.lastBytes = sent;
-        }
-    }
-
-    updateReceiveProgress(received, total) {
-        const progress = (received / total) * 100;
-        const now = Date.now();
-        const timeDiff = (now - this.lastUpdate) / 1000;
-
-        if (timeDiff >= 0.1) {
-            const bytesDiff = received - this.lastBytes;
-            const speed = bytesDiff / timeDiff;
-
-            document.getElementById('receiveProgressFill').style.width = progress + '%';
-            document.getElementById('receivePercent').textContent = Math.round(progress) + '%';
-            document.getElementById('receiveSpeed').textContent = this.formatBytes(speed) + '/s';
-            document.getElementById('receiveTransferred').textContent =
-                `${this.formatBytes(received)} / ${this.formatBytes(total)}`;
-
-            const remaining = (total - received) / speed;
-            document.getElementById('receiveRemaining').textContent = this.formatTime(remaining);
-
-            this.lastUpdate = now;
-            this.lastBytes = received;
-        }
-    }
-
-    completeSend() {
-        document.getElementById('sendProgress').classList.add('hidden');
-        document.getElementById('sendSuccess').classList.remove('hidden');
-    }
-
-    async completeReceive() {
-        document.getElementById('receiveProgress').classList.add('hidden');
-
-        try {
-            const writable = await this.fileHandle.createWritable();
-            const blob = new Blob(this.chunks);
-            await writable.write(blob);
-            await writable.close();
-
-            document.getElementById('receiveSuccess').classList.remove('hidden');
-        } catch (err) {
-            console.error('Error writing file:', err);
-            alert('Ошибка при сохранении файла');
-        }
-    }
-
-    resetSender() {
-        this.file = null;
-        this.transferCode = null;
-        if (this.connection) this.connection.close();
-        if (this.peer) this.peer.destroy();
-        document.getElementById('uploadArea').classList.remove('hidden');
-        document.getElementById('fileInfo').classList.add('hidden');
-        document.getElementById('codeDisplay').classList.add('hidden');
-        document.getElementById('sendProgress').classList.add('hidden');
-        document.getElementById('sendSuccess').classList.add('hidden');
-        document.getElementById('fileInput').value = '';
-    }
-
-    resetReceiver() {
-        this.chunks = [];
-        this.receivedSize = 0;
-        this.totalSize = 0;
-        if (this.connection) this.connection.close();
-        if (this.peer) this.peer.destroy();
-        document.querySelector('.code-input-area').classList.remove('hidden');
-        document.getElementById('filePreview').classList.add('hidden');
-        document.getElementById('receiveProgress').classList.add('hidden');
-        document.getElementById('receiveSuccess').classList.add('hidden');
-        document.getElementById('codeInput').value = '';
-        document.getElementById('codeInput').disabled = false;
-        document.getElementById('connectBtn').disabled = false;
-        document.getElementById('connectBtn').textContent = 'Подключиться';
-    }
-
-    formatBytes(bytes) {
-        if (bytes === 0) return '0 B';
-        const k = 1024;
-        const sizes = ['B', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }
-
-    formatTime(seconds) {
-        if (!isFinite(seconds) || seconds < 0) return '--:--';
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
     }
 }
 
-// Initialize app when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    new FileTransfer();
+function drawPixels() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    pixels.forEach(pixel => {
+        const dx = mouseX - (pixel.x + pixelSize / 2);
+        const dy = mouseY - (pixel.y + pixelSize / 2);
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const maxDistance = 200;
+
+        let targetOpacity;
+
+        if (distance < maxDistance) {
+            const influence = 1 - (distance / maxDistance);
+            targetOpacity = pixel.baseOpacity * (1 - influence * 0.8);
+        } else {
+            targetOpacity = pixel.baseOpacity;
+        }
+
+        pixel.opacity += (targetOpacity - pixel.opacity) * 0.1;
+
+        ctx.fillStyle = `rgba(80, 80, 80, ${pixel.opacity})`;
+        ctx.fillRect(pixel.x, pixel.y, pixelSize - 1, pixelSize - 1);
+    });
+
+    requestAnimationFrame(drawPixels);
+}
+
+document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+});
+
+window.addEventListener('resize', initCanvas);
+
+initCanvas();
+drawPixels();
+
+// Хранилище сниппетов
+let snippets = JSON.parse(localStorage.getItem('codeSnippets')) || [];
+
+// Элементы DOM
+const addBtn = document.getElementById('addBtn');
+const modal = document.getElementById('modal');
+const viewModal = document.getElementById('viewModal');
+const closeModal = document.getElementById('closeModal');
+const closeViewModal = document.getElementById('closeViewModal');
+const saveBtn = document.getElementById('saveBtn');
+const snippetsList = document.getElementById('snippetsList');
+const snippetName = document.getElementById('snippetName');
+const codeInput = document.getElementById('codeInput');
+const viewTitle = document.getElementById('viewTitle');
+const viewCode = document.getElementById('viewCode');
+const copyBtn = document.getElementById('copyBtn');
+const shareBtn = document.getElementById('shareBtn');
+const shareLink = document.getElementById('shareLink');
+const shareLinkInput = document.getElementById('shareLinkInput');
+const copyLinkBtn = document.getElementById('copyLinkBtn');
+const editBtn = document.getElementById('editBtn');
+const deleteBtn = document.getElementById('deleteBtn');
+
+let currentSnippetId = null;
+let isEditMode = false;
+
+// Инициализация
+init();
+
+function init() {
+    renderSnippets();
+    checkUrlForSnippet();
+}
+
+// Проверка URL на наличие ID сниппета
+function checkUrlForSnippet() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const snippetId = urlParams.get('id');
+
+    if (snippetId) {
+        const snippet = snippets.find(s => s.id === snippetId);
+        if (snippet) {
+            openViewModal(snippet);
+        }
+    }
+}
+
+// Генерация уникального ID
+function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+// Открытие модального окна для добавления
+addBtn.addEventListener('click', () => {
+    modal.style.display = 'block';
+    snippetName.value = '';
+    codeInput.value = '';
+    currentSnippetId = null;
+    isEditMode = false;
+    document.getElementById('modalTitle').textContent = 'Новый код';
+});
+
+// Закрытие модальных окон
+closeModal.addEventListener('click', () => {
+    modal.style.display = 'none';
+});
+
+closeViewModal.addEventListener('click', () => {
+    viewModal.style.display = 'none';
+    // Убираем ID из URL при закрытии
+    window.history.pushState({}, '', window.location.pathname);
+});
+
+window.addEventListener('click', (e) => {
+    if (e.target === modal) {
+        modal.style.display = 'none';
+    }
+    if (e.target === viewModal) {
+        viewModal.style.display = 'none';
+        window.history.pushState({}, '', window.location.pathname);
+    }
+});
+
+// Сохранение сниппета
+saveBtn.addEventListener('click', () => {
+    const name = snippetName.value.trim();
+    const code = codeInput.value;
+
+    if (!name) {
+        alert('Введи название кода!');
+        return;
+    }
+
+    if (!code) {
+        alert('Вставь код!');
+        return;
+    }
+
+    const snippet = {
+        id: currentSnippetId || generateId(),
+        name: name,
+        code: code,
+        createdAt: new Date().toISOString()
+    };
+
+    if (currentSnippetId) {
+        const index = snippets.findIndex(s => s.id === currentSnippetId);
+        snippets[index] = snippet;
+    } else {
+        snippets.unshift(snippet);
+    }
+
+    localStorage.setItem('codeSnippets', JSON.stringify(snippets));
+    renderSnippets();
+    modal.style.display = 'none';
+});
+
+// Отображение списка сниппетов
+function renderSnippets() {
+    snippetsList.innerHTML = '';
+
+    if (snippets.length === 0) {
+        snippetsList.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1/-1;">Пока нет сохраненного кода. Нажми "+" чтобы добавить!</p>';
+        return;
+    }
+
+    snippets.forEach(snippet => {
+        const card = document.createElement('div');
+        card.className = 'snippet-card';
+        card.innerHTML = `
+            <h3>${escapeHtml(snippet.name)}</h3>
+            <div class="snippet-preview">${escapeHtml(snippet.code.substring(0, 150))}</div>
+        `;
+
+        card.addEventListener('click', () => openViewModal(snippet));
+        snippetsList.appendChild(card);
+    });
+}
+
+// Открытие модального окна просмотра
+function openViewModal(snippet) {
+    viewTitle.textContent = snippet.name;
+
+    // Сбрасываем предыдущую подсветку
+    viewCode.className = '';
+    viewCode.removeAttribute('data-highlighted');
+    viewCode.textContent = snippet.code;
+    currentSnippetId = snippet.id;
+
+    // Применяем подсветку синтаксиса
+    if (typeof hljs !== 'undefined') {
+        hljs.highlightElement(viewCode);
+    }
+
+    // Обновляем URL
+    const url = `${window.location.origin}${window.location.pathname}?id=${snippet.id}`;
+    window.history.pushState({}, '', url);
+    shareLinkInput.value = url;
+
+    viewModal.style.display = 'block';
+    shareLink.style.display = 'none';
+}
+
+// Копирование кода
+copyBtn.addEventListener('click', () => {
+    const code = viewCode.textContent;
+    navigator.clipboard.writeText(code).then(() => {
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = 'Скопировано!';
+        setTimeout(() => {
+            copyBtn.textContent = originalText;
+        }, 2000);
+    });
+});
+
+// Показать ссылку для шаринга
+shareBtn.addEventListener('click', () => {
+    shareLink.style.display = shareLink.style.display === 'none' ? 'flex' : 'none';
+});
+
+// Копирование ссылки
+copyLinkBtn.addEventListener('click', () => {
+    shareLinkInput.select();
+    navigator.clipboard.writeText(shareLinkInput.value).then(() => {
+        const originalText = copyLinkBtn.textContent;
+        copyLinkBtn.textContent = 'Скопировано!';
+        setTimeout(() => {
+            copyLinkBtn.textContent = originalText;
+        }, 2000);
+    });
+});
+
+// Экранирование HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Кнопка изменить
+editBtn.addEventListener('click', () => {
+    const snippet = snippets.find(s => s.id === currentSnippetId);
+    if (snippet) {
+        viewModal.style.display = 'none';
+        modal.style.display = 'block';
+        snippetName.value = snippet.name;
+        codeInput.value = snippet.code;
+        isEditMode = true;
+        document.getElementById('modalTitle').textContent = 'Изменить код';
+    }
+});
+
+// Кнопка удалить
+deleteBtn.addEventListener('click', () => {
+    if (confirm('Точно удалить этот код?')) {
+        snippets = snippets.filter(s => s.id !== currentSnippetId);
+        localStorage.setItem('codeSnippets', JSON.stringify(snippets));
+        renderSnippets();
+        viewModal.style.display = 'none';
+        window.history.pushState({}, '', window.location.pathname);
+    }
+});
+
+// Обработка навигации браузера
+window.addEventListener('popstate', () => {
+    checkUrlForSnippet();
 });

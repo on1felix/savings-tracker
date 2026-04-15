@@ -1,8 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:vercel-black-ten.vercel.app)",
-      "Bash(npm init:*)"
+      "WebFetch(domain:code-share-three-iota.vercel.app)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }
