@@ -105,6 +105,23 @@ function checkUrlForSnippet() {
     const urlParams = new URLSearchParams(window.location.search);
     const snippetId = urlParams.get('id');
 
+    // Проверяем hash для встроенного кода
+    const hash = window.location.hash.substring(1);
+    if (hash) {
+        try {
+            const decoded = atob(hash);
+            const data = JSON.parse(decoded);
+            openViewModal({
+                id: 'shared',
+                name: data.name || 'Shared Code',
+                code: data.code
+            });
+            return;
+        } catch (e) {
+            console.error('Failed to decode shared code:', e);
+        }
+    }
+
     if (snippetId) {
         const snippet = snippets.find(s => s.id === snippetId);
         if (snippet) {
@@ -220,10 +237,12 @@ function openViewModal(snippet) {
         hljs.highlightElement(viewCode);
     }
 
-    // Обновляем URL
-    const url = `${window.location.origin}${window.location.pathname}?id=${snippet.id}`;
-    window.history.pushState({}, '', url);
-    shareLinkInput.value = url;
+    // Обновляем URL только если это не shared код
+    if (snippet.id !== 'shared') {
+        const url = `${window.location.origin}${window.location.pathname}?id=${snippet.id}`;
+        window.history.pushState({}, '', url);
+        shareLinkInput.value = url;
+    }
 
     viewModal.style.display = 'block';
     shareLink.style.display = 'none';
@@ -243,6 +262,18 @@ copyBtn.addEventListener('click', () => {
 
 // Показать ссылку для шаринга
 shareBtn.addEventListener('click', () => {
+    // Создаем ссылку с встроенным кодом для ИИ
+    const snippet = snippets.find(s => s.id === currentSnippetId);
+    if (snippet) {
+        const data = {
+            name: snippet.name,
+            code: snippet.code
+        };
+        const encoded = btoa(JSON.stringify(data));
+        const shareUrl = `${window.location.origin}${window.location.pathname}#${encoded}`;
+        shareLinkInput.value = shareUrl;
+    }
+
     shareLink.style.display = shareLink.style.display === 'none' ? 'flex' : 'none';
 });
 
