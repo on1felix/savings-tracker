@@ -20,27 +20,29 @@ export default function ConfirmDeleteModal({ isOpen, onClose, onConfirm, amount,
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               transition={{ type: "spring", duration: 0.5 }}
-              className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-6 max-w-sm w-full relative"
+              className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-8 max-w-md w-full relative"
               onClick={(e) => e.stopPropagation()}
             >
               <button
                 onClick={onClose}
-                className="absolute top-4 right-4 p-2 hover:bg-primary/20 rounded-lg transition-colors"
+                className="absolute top-6 right-6 p-2 hover:bg-primary/20 rounded-lg transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-6 h-6" />
               </button>
 
-              <div className="text-center mb-6">
-                <div className="inline-flex p-4 bg-red-500/10 rounded-2xl mb-4">
-                  <AlertTriangle className="w-8 h-8 text-red-400" />
+              <div className="mb-8">
+                <div className="flex justify-center mb-4">
+                  <div className="p-4 bg-red-500/10 rounded-2xl">
+                    <AlertTriangle className="w-8 h-8 text-red-400" />
+                  </div>
                 </div>
-                <h2 className="text-2xl font-display font-bold text-white mb-2">
+                <h2 className="text-3xl font-display font-bold text-gradient mb-2 text-center">
                   Удалить транзакцию?
                 </h2>
-                <p className="text-gray-400 mb-2">
+                <p className="text-gray-400 text-center mb-4">
                   Вы уверены, что хотите удалить эту транзакцию?
                 </p>
-                <p className="text-lg font-semibold text-gradient">
+                <p className="text-2xl font-bold text-center text-gradient">
                   +{amount} {currency}
                 </p>
               </div>
@@ -49,16 +51,40 @@ export default function ConfirmDeleteModal({ isOpen, onClose, onConfirm, amount,
                 <motion.button
                   whileTap={{ scale: 0.98 }}
                   onClick={onClose}
-                  className="flex-1 bg-dark-light border-2 border-primary/30 rounded-xl px-4 py-3 font-semibold hover:border-primary/50 transition-all duration-300"
+                  className="flex-1 bg-dark-light border-2 border-primary/30 rounded-xl px-6 py-4 text-lg font-semibold hover:border-primary hover:shadow-[0_0_20px_rgba(108,99,255,0.3)] transition-all duration-300 group relative overflow-hidden"
+                  onMouseMove={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    e.currentTarget.style.setProperty('--mouse-x', `${x}px`);
+                    e.currentTarget.style.setProperty('--mouse-y', `${y}px`);
+                  }}
                 >
-                  Отмена
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                       style={{
+                         background: 'radial-gradient(circle 100px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(108, 99, 255, 0.15), transparent)'
+                       }}
+                  />
+                  <span className="relative z-10">Отмена</span>
                 </motion.button>
                 <motion.button
                   whileTap={{ scale: 0.98 }}
                   onClick={onConfirm}
-                  className="flex-1 bg-red-500/20 border-2 border-red-500/30 rounded-xl px-4 py-3 font-semibold text-red-400 hover:border-red-500/50 hover:bg-red-500/30 transition-all duration-300"
+                  className="flex-1 bg-dark-light border-2 border-red-500/30 rounded-xl px-6 py-4 text-lg font-semibold text-red-400 hover:border-red-500/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.3)] transition-all duration-300 group relative overflow-hidden"
+                  onMouseMove={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    e.currentTarget.style.setProperty('--mouse-x', `${x}px`);
+                    e.currentTarget.style.setProperty('--mouse-y', `${y}px`);
+                  }}
                 >
-                  Удалить
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                       style={{
+                         background: 'radial-gradient(circle 100px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(239, 68, 68, 0.15), transparent)'
+                       }}
+                  />
+                  <span className="relative z-10">Удалить</span>
                 </motion.button>
               </div>
             </motion.div>
