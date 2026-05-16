@@ -72,7 +72,7 @@ export default function TransactionHistory({ transactions, currency = 'RUB', onD
         </span>
       </div>
 
-      <div className="space-y-1.5 max-h-[180px] overflow-y-auto pr-2 smooth-scroll">
+      <div className="space-y-1.5 max-h-[150px] overflow-y-auto pr-2 smooth-scroll">
         <AnimatePresence mode="popLayout">
           {transactions.map((transaction, index) => (
             <motion.div
