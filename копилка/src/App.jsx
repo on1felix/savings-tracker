@@ -200,7 +200,7 @@ export default function App() {
           onOpenSettings={() => setIsSettingsOpen(true)}
         />
 
-        <main className="container mx-auto px-4 py-6 max-w-6xl">
+        <main className="container mx-auto px-4 py-3 max-w-6xl">
           <SavingsCard
             currentAmount={currentAmount}
             targetAmount={targetAmount}

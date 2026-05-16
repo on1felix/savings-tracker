@@ -38,14 +38,14 @@ export default function SavingsCard({ currentAmount, targetAmount, percentage, c
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-4 md:p-6 mb-4"
+      className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-4 md:p-6 mb-3"
     >
-      <div className="grid md:grid-cols-2 gap-6 items-center">
+      <div className="grid md:grid-cols-2 gap-4 items-center">
         <div className="flex flex-col items-center justify-center">
-          <CircularProgress percentage={percentage} size={180} />
+          <CircularProgress percentage={percentage} size={160} />
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
