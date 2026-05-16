@@ -1,0 +1,236 @@
+import { useState, useEffect } from 'react';
+import AnimatedBackground from './components/AnimatedBackground';
+import Header from './components/Header';
+import SavingsCard from './components/SavingsCard';
+import AddFundsModal from './components/AddFundsModal';
+import TransactionHistory from './components/TransactionHistory';
+import AuthModal from './components/AuthModal';
+import SettingsModal from './components/SettingsModal';
+import { authService, savingsService, transactionsService } from './lib/api';
+import { supabase } from './lib/supabase';
+
+export default function App() {
+  const [user, setUser] = useState(null);
+  const [currency, setCurrency] = useState('RUB');
+  const [currentAmount, setCurrentAmount] = useState(0);
+  const [targetAmount, setTargetAmount] = useState(10000);
+  const [transactions, setTransactions] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(true);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    checkUser();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        const userData = await authService.getCurrentUser();
+        setUser(userData);
+        loadUserData(userData.id);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setIsAuthModalOpen(true);
+      }
+    });
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
+  }, []);
+
+  const checkUser = async () => {
+    // Таймаут на случай зависания
+    const timeout = setTimeout(() => {
+      setLoading(false);
+      setIsAuthModalOpen(true);
+    }, 3000);
+
+    try {
+      const userData = await authService.getCurrentUser();
+      clearTimeout(timeout);
+
+      if (userData) {
+        setUser(userData);
+        await loadUserData(userData.id);
+        setIsAuthModalOpen(false);
+      } else {
+        setIsAuthModalOpen(true);
+      }
+    } catch (error) {
+      clearTimeout(timeout);
+      console.error('Error checking user:', error);
+      setIsAuthModalOpen(true);
+    } finally {
+      clearTimeout(timeout);
+      setLoading(false);
+    }
+  };
+
+  const loadUserData = async (userId) => {
+    try {
+      const [savingsData, transactionsData] = await Promise.all([
+        savingsService.getSavings(userId),
+        transactionsService.getTransactions(userId),
+      ]);
+
+      setCurrentAmount(parseFloat(savingsData.current_amount));
+      setTargetAmount(parseFloat(savingsData.target_amount));
+      setTransactions(transactionsData);
+
+      const userData = await authService.getCurrentUser();
+      setCurrency(userData.currency || 'RUB');
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  };
+
+  const handleLogin = async (userData) => {
+    setUser(userData);
+    setIsAuthModalOpen(false);
+    await loadUserData(userData.id);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await authService.signOut();
+      setUser(null);
+      setCurrentAmount(0);
+      setTargetAmount(10000);
+      setTransactions([]);
+      setCurrency('RUB');
+      setIsAuthModalOpen(true);
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
+
+  const handleAddFunds = async (amount) => {
+    try {
+      const newTransaction = await transactionsService.addTransaction(
+        user.id,
+        parseFloat(amount),
+        currency
+      );
+
+      const newAmount = currentAmount + parseFloat(amount);
+      await savingsService.updateSavings(user.id, newAmount, targetAmount);
+
+      setTransactions(prev => [newTransaction, ...prev]);
+      setCurrentAmount(newAmount);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Error adding funds:', error);
+      alert('Ошибка при добавлении средств');
+    }
+  };
+
+  const handleDeleteTransaction = async (id) => {
+    try {
+      const transaction = transactions.find(t => t.id === id);
+      if (!transaction) return;
+
+      await transactionsService.deleteTransaction(id);
+
+      const newAmount = currentAmount - parseFloat(transaction.amount);
+      await savingsService.updateSavings(user.id, newAmount, targetAmount);
+
+      setCurrentAmount(newAmount);
+      setTransactions(prev => prev.filter(t => t.id !== id));
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+      alert('Ошибка при удалении транзакции');
+    }
+  };
+
+  const handleUpdateTarget = async (newTarget) => {
+    try {
+      await savingsService.updateSavings(user.id, currentAmount, parseFloat(newTarget));
+      setTargetAmount(parseFloat(newTarget));
+    } catch (error) {
+      console.error('Error updating target:', error);
+      alert('Ошибка при обновлении цели');
+    }
+  };
+
+  const handleCurrencyChange = async (newCurrency) => {
+    try {
+      await authService.updateCurrency(user.id, newCurrency);
+      setCurrency(newCurrency);
+    } catch (error) {
+      console.error('Error updating currency:', error);
+      alert('Ошибка при смене валюты');
+    }
+  };
+
+  const percentage = targetAmount > 0 ? Math.min((currentAmount / targetAmount) * 100, 100) : 0;
+
+  if (loading) {
+    return (
+      <div className="relative min-h-screen bg-dark flex items-center justify-center">
+        <AnimatedBackground />
+        <div className="relative z-10">
+          <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="relative min-h-screen bg-dark">
+        <AnimatedBackground />
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => {}}
+          onLogin={handleLogin}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative min-h-screen bg-dark">
+      <AnimatedBackground />
+
+      <div className="relative z-10">
+        <Header
+          user={user}
+          onLogout={handleLogout}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+        />
+
+        <main className="container mx-auto px-4 py-6 max-w-6xl">
+          <SavingsCard
+            currentAmount={currentAmount}
+            targetAmount={targetAmount}
+            percentage={percentage}
+            currency={currency}
+            onAddFunds={() => setIsModalOpen(true)}
+            onUpdateTarget={handleUpdateTarget}
+          />
+
+          <TransactionHistory
+            transactions={transactions}
+            currency={currency}
+            onDelete={handleDeleteTransaction}
+          />
+        </main>
+      </div>
+
+      <AddFundsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAdd={handleAddFunds}
+        currency={currency}
+      />
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        currency={currency}
+        onCurrencyChange={handleCurrencyChange}
+      />
+    </div>
+  );
+}
