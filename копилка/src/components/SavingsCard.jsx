@@ -38,14 +38,14 @@ export default function SavingsCard({ currentAmount, targetAmount, percentage, c
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-4 md:p-6 mb-3"
+      className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-3 md:p-4 mb-3"
     >
-      <div className="grid md:grid-cols-2 gap-4 items-center">
+      <div className="grid md:grid-cols-2 gap-3 items-center">
         <div className="flex flex-col items-center justify-center">
-          <CircularProgress percentage={percentage} size={160} />
+          <CircularProgress percentage={percentage} size={140} />
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -53,10 +53,10 @@ export default function SavingsCard({ currentAmount, targetAmount, percentage, c
             className="space-y-3"
           >
             <div className="flex items-center gap-2 text-gray-400">
-              <PiggyBank className="w-5 h-5" />
-              <span className="text-base font-medium">Текущая сумма</span>
+              <PiggyBank className="w-4 h-4" />
+              <span className="text-sm font-medium">Текущая сумма</span>
             </div>
-            <div className="text-3xl md:text-4xl font-display font-bold text-gradient">
+            <div className="text-2xl md:text-3xl font-display font-bold text-gradient">
               <CountUp end={currentAmount} duration={1.5} suffix={` ${symbol}`} decimals={2} />
             </div>
           </motion.div>
@@ -68,8 +68,8 @@ export default function SavingsCard({ currentAmount, targetAmount, percentage, c
             className="space-y-3"
           >
             <div className="flex items-center gap-2 text-gray-400">
-              <Target className="w-5 h-5" />
-              <span className="text-base font-medium">Цель</span>
+              <Target className="w-4 h-4" />
+              <span className="text-sm font-medium">Цель</span>
             </div>
             {isEditingTarget ? (
               <div className="flex items-center gap-2 overflow-hidden">
@@ -86,7 +86,7 @@ export default function SavingsCard({ currentAmount, targetAmount, percentage, c
               </div>
             ) : (
               <div className="flex items-center gap-3">
-                <div className="text-3xl md:text-4xl font-display font-bold text-gradient">
+                <div className="text-2xl md:text-3xl font-display font-bold text-gradient">
                   <CountUp end={targetAmount} duration={1.5} suffix={` ${symbol}`} decimals={0} />
                 </div>
                 <button
@@ -108,7 +108,7 @@ export default function SavingsCard({ currentAmount, targetAmount, percentage, c
             <motion.button
               whileTap={{ scale: 0.98 }}
               onClick={onAddFunds}
-              className="w-full bg-dark-light border-2 border-primary/30 rounded-xl px-6 py-3 flex items-center justify-center gap-2 hover:border-primary hover:shadow-[0_0_20px_rgba(108,99,255,0.3)] transition-all duration-300 group relative overflow-hidden"
+              className="w-full bg-dark-light border-2 border-primary/30 rounded-xl px-4 py-2 flex items-center justify-center gap-2 hover:border-primary hover:shadow-[0_0_20px_rgba(108,99,255,0.3)] transition-all duration-300 group relative overflow-hidden"
               onMouseMove={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const x = e.clientX - rect.left;
@@ -122,8 +122,8 @@ export default function SavingsCard({ currentAmount, targetAmount, percentage, c
                      background: 'radial-gradient(circle 100px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(108, 99, 255, 0.15), transparent)'
                    }}
               />
-              <Plus className="w-5 h-5 relative z-10" />
-              <span className="text-lg font-semibold relative z-10">Пополнить</span>
+              <Plus className="w-4 h-4 relative z-10" />
+              <span className="text-base font-semibold relative z-10">Пополнить</span>
             </motion.button>
           </motion.div>
         </div>
