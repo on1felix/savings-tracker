@@ -41,11 +41,11 @@ export default function TransactionHistory({ transactions, currency = 'RUB', onD
         className="bg-dark-card border border-primary/20 rounded-3xl p-12 text-center"
       >
         <div className="flex flex-col items-center gap-4">
-          <div className="p-6 bg-dark-light rounded-full">
+          <div className="p-5 bg-dark-light rounded-full">
             <History className="w-12 h-12 text-gray-500" />
           </div>
           <div>
-            <h3 className="text-xl font-semibold text-gray-400 mb-4">
+            <h3 className="text-xl font-semibold text-gray-400 mb-3">
               История пуста
             </h3>
             <p className="text-gray-500">
@@ -62,9 +62,9 @@ export default function TransactionHistory({ transactions, currency = 'RUB', onD
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3, duration: 0.6 }}
-      className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-6"
+      className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-5"
     >
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex items-center gap-3 mb-3">
         <History className="w-5 h-5 text-primary" />
         <h2 className="text-xl font-display font-bold">История пополнений</h2>
         <span className="ml-auto text-base text-gray-400 bg-dark-light px-3 py-1 rounded-full">
@@ -72,7 +72,7 @@ export default function TransactionHistory({ transactions, currency = 'RUB', onD
         </span>
       </div>
 
-      <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 smooth-scroll">
+      <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2 smooth-scroll">
         <AnimatePresence mode="popLayout">
           {transactions.map((transaction, index) => (
             <motion.div
