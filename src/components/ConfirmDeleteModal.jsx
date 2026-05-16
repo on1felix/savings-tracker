@@ -12,6 +12,7 @@ export default function ConfirmDeleteModal({ isOpen, onClose, onConfirm, amount,
             exit={{ opacity: 0 }}
             onClick={onClose}
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            style={{ backdropFilter: 'blur(4px)' }}
           />
 
           <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
