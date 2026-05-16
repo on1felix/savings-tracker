@@ -62,9 +62,9 @@ export default function TransactionHistory({ transactions, currency = 'RUB', onD
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3, duration: 0.6 }}
-      className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-6"
+      className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-4"
     >
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-3">
         <History className="w-5 h-5 text-primary" />
         <h2 className="text-xl font-display font-bold">История пополнений</h2>
         <span className="ml-auto text-sm text-gray-400 bg-dark-light px-3 py-1 rounded-full">
