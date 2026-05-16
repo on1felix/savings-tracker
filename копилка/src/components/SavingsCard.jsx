@@ -38,14 +38,14 @@ export default function SavingsCard({ currentAmount, targetAmount, percentage, c
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-6 md:p-8 mb-6"
+      className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-4 md:p-6 mb-4"
     >
-      <div className="grid md:grid-cols-2 gap-8 items-center">
+      <div className="grid md:grid-cols-2 gap-6 items-center">
         <div className="flex flex-col items-center justify-center">
-          <CircularProgress percentage={percentage} size={220} />
+          <CircularProgress percentage={percentage} size={180} />
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -56,7 +56,7 @@ export default function SavingsCard({ currentAmount, targetAmount, percentage, c
               <PiggyBank className="w-5 h-5" />
               <span className="text-base font-medium">Текущая сумма</span>
             </div>
-            <div className="text-4xl md:text-5xl font-display font-bold text-gradient">
+            <div className="text-3xl md:text-4xl font-display font-bold text-gradient">
               <CountUp end={currentAmount} duration={1.5} suffix={` ${symbol}`} decimals={2} />
             </div>
           </motion.div>

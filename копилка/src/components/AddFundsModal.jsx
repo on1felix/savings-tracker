@@ -42,7 +42,7 @@ export default function AddFundsModal({ isOpen, onClose, onAdd, currency = 'RUB'
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               transition={{ type: "spring", duration: 0.5 }}
-              className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-8 max-w-md w-full relative"
+              className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-6 max-w-sm w-full relative"
               onClick={(e) => e.stopPropagation()}
             >
               <button
@@ -52,14 +52,14 @@ export default function AddFundsModal({ isOpen, onClose, onAdd, currency = 'RUB'
                 <X className="w-6 h-6" />
               </button>
 
-              <div className="mb-8">
-                <h2 className="text-3xl font-display font-bold text-gradient mb-2">
+              <div className="mb-6">
+                <h2 className="text-2xl font-display font-bold text-gradient mb-2">
                   Пополнить копилку
                 </h2>
                 <p className="text-gray-400">Введите сумму пополнения</p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-2">
                     Сумма
