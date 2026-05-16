@@ -1,7 +1,5 @@
-import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { History, Trash2, TrendingUp } from 'lucide-react';
-import ConfirmDeleteModal from './ConfirmDeleteModal';
 
 const currencySymbols = {
   RUB: '₽',
@@ -12,26 +10,6 @@ const currencySymbols = {
 
 export default function TransactionHistory({ transactions, currency = 'RUB', onDelete }) {
   const symbol = currencySymbols[currency] || '₽';
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [transactionToDelete, setTransactionToDelete] = useState(null);
-
-  const handleDeleteClick = (transaction) => {
-    setTransactionToDelete(transaction);
-    setDeleteModalOpen(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (transactionToDelete) {
-      onDelete(transactionToDelete.id);
-      setDeleteModalOpen(false);
-      setTransactionToDelete(null);
-    }
-  };
-
-  const handleCancelDelete = () => {
-    setDeleteModalOpen(false);
-    setTransactionToDelete(null);
-  };
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -122,7 +100,7 @@ export default function TransactionHistory({ transactions, currency = 'RUB', onD
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                onClick={() => handleDeleteClick(transaction)}
+                onClick={() => onDelete(transaction.id)}
                 className="p-2 hover:bg-red-500/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
               >
                 <Trash2 className="w-5 h-5 text-red-400" />
@@ -131,14 +109,6 @@ export default function TransactionHistory({ transactions, currency = 'RUB', onD
           ))}
         </AnimatePresence>
       </div>
-
-      <ConfirmDeleteModal
-        isOpen={deleteModalOpen}
-        onClose={handleCancelDelete}
-        onConfirm={handleConfirmDelete}
-        amount={transactionToDelete?.amount.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        currency={transactionToDelete?.currency ? currencySymbols[transactionToDelete.currency] : symbol}
-      />
     </motion.div>
   );
 }

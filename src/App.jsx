@@ -6,6 +6,7 @@ import AddFundsModal from './components/AddFundsModal';
 import TransactionHistory from './components/TransactionHistory';
 import AuthModal from './components/AuthModal';
 import SettingsModal from './components/SettingsModal';
+import ConfirmDeleteModal from './components/ConfirmDeleteModal';
 import { authService, savingsService, transactionsService } from './lib/api';
 import { supabase } from './lib/supabase';
 
@@ -18,6 +19,8 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -126,17 +129,26 @@ export default function App() {
   };
 
   const handleDeleteTransaction = async (id) => {
+    const transaction = transactions.find(t => t.id === id);
+    if (!transaction) return;
+
+    setTransactionToDelete(transaction);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!transactionToDelete) return;
+
     try {
-      const transaction = transactions.find(t => t.id === id);
-      if (!transaction) return;
+      await transactionsService.deleteTransaction(transactionToDelete.id);
 
-      await transactionsService.deleteTransaction(id);
-
-      const newAmount = currentAmount - parseFloat(transaction.amount);
+      const newAmount = currentAmount - parseFloat(transactionToDelete.amount);
       await savingsService.updateSavings(user.id, newAmount, targetAmount);
 
       setCurrentAmount(newAmount);
-      setTransactions(prev => prev.filter(t => t.id !== id));
+      setTransactions(prev => prev.filter(t => t.id !== transactionToDelete.id));
+      setIsDeleteModalOpen(false);
+      setTransactionToDelete(null);
     } catch (error) {
       console.error('Error deleting transaction:', error);
       alert('Ошибка при удалении транзакции');
@@ -230,6 +242,20 @@ export default function App() {
         onClose={() => setIsSettingsOpen(false)}
         currency={currency}
         onCurrencyChange={handleCurrencyChange}
+      />
+
+      <ConfirmDeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setTransactionToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        amount={transactionToDelete?.amount.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        currency={transactionToDelete?.currency ?
+          ({ RUB: '₽', USD: '$', EUR: '€', KGS: 'с' }[transactionToDelete.currency]) :
+          ({ RUB: '₽', USD: '$', EUR: '€', KGS: 'с' }[currency])
+        }
       />
     </div>
   );
