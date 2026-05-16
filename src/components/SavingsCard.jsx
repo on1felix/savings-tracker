@@ -38,7 +38,7 @@ export default function SavingsCard({ currentAmount, targetAmount, percentage, c
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="bg-dark-card/60 backdrop-blur-xl border border-primary/20 rounded-3xl p-6 md:p-8 mb-6"
+      className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-6 md:p-8 mb-6"
     >
       <div className="grid md:grid-cols-2 gap-8 items-center">
         <div className="flex flex-col items-center justify-center">
@@ -80,14 +80,14 @@ export default function SavingsCard({ currentAmount, targetAmount, percentage, c
                   onKeyDown={handleKeyPress}
                   onBlur={handleSaveTarget}
                   autoFocus
-                  className="text-3xl md:text-4xl font-display font-bold bg-dark/50 backdrop-blur-sm border-2 border-primary/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary transition-colors w-full max-w-[200px]"
+                  className="text-3xl md:text-4xl font-display font-bold bg-dark/80 border-2 border-primary/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary transition-colors w-full max-w-[200px]"
                 />
                 <span className="text-3xl md:text-4xl font-display font-bold text-white flex-shrink-0">{symbol}</span>
               </div>
             ) : (
               <div className="flex items-center gap-3">
-                <div className="text-3xl md:text-4xl font-display font-bold text-white">
-                  {targetAmount.toLocaleString('ru-RU')} {symbol}
+                <div className="text-3xl md:text-4xl font-display font-bold text-gradient">
+                  <CountUp end={targetAmount} duration={1.5} suffix={` ${symbol}`} decimals={0} />
                 </div>
                 <button
                   onClick={() => setIsEditingTarget(true)}
@@ -106,15 +106,24 @@ export default function SavingsCard({ currentAmount, targetAmount, percentage, c
             className="pt-2"
           >
             <motion.button
-              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={onAddFunds}
-              className="w-full bg-gradient-to-r from-primary via-accent to-secondary p-[2px] rounded-xl group"
+              className="w-full bg-dark-light border-2 border-primary/30 rounded-xl px-6 py-3 flex items-center justify-center gap-2 hover:border-primary hover:shadow-[0_0_20px_rgba(108,99,255,0.3)] transition-all duration-300 group relative overflow-hidden"
+              onMouseMove={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                e.currentTarget.style.setProperty('--mouse-x', `${x}px`);
+                e.currentTarget.style.setProperty('--mouse-y', `${y}px`);
+              }}
             >
-              <div className="bg-dark-card/60 backdrop-blur-sm rounded-xl px-6 py-3 flex items-center justify-center gap-2 group-hover:bg-dark-card/30 transition-all duration-300">
-                <Plus className="w-5 h-5" />
-                <span className="text-lg font-semibold">Пополнить</span>
-              </div>
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                   style={{
+                     background: 'radial-gradient(circle 100px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(108, 99, 255, 0.15), transparent)'
+                   }}
+              />
+              <Plus className="w-5 h-5 relative z-10" />
+              <span className="text-lg font-semibold relative z-10">Пополнить</span>
             </motion.button>
           </motion.div>
         </div>

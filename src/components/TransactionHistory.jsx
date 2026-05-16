@@ -62,7 +62,7 @@ export default function TransactionHistory({ transactions, currency = 'RUB', onD
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3, duration: 0.6 }}
-      className="bg-dark-card/60 backdrop-blur-xl border border-primary/20 rounded-3xl p-6"
+      className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-6"
     >
       <div className="flex items-center gap-2 mb-4">
         <History className="w-5 h-5 text-primary" />
@@ -82,7 +82,7 @@ export default function TransactionHistory({ transactions, currency = 'RUB', onD
               exit={{ opacity: 0, x: 20, height: 0, marginBottom: 0 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
               layout
-              className="bg-dark-light/60 backdrop-blur-sm border border-primary/10 rounded-xl p-3 flex items-center gap-3 group hover:border-primary/30 transition-colors"
+              className="bg-dark-light/30 border border-primary/10 rounded-xl p-3 flex items-center gap-3 group hover:border-primary/30 transition-colors"
             >
               <div className="p-2 bg-success/10 rounded-lg">
                 <TrendingUp className="w-4 h-4 text-success" />

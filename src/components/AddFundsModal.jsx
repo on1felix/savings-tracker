@@ -42,7 +42,7 @@ export default function AddFundsModal({ isOpen, onClose, onAdd, currency = 'RUB'
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               transition={{ type: "spring", duration: 0.5 }}
-              className="bg-dark-card/80 backdrop-blur-xl border border-primary/20 rounded-3xl p-8 max-w-md w-full relative"
+              className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-8 max-w-md w-full relative"
               onClick={(e) => e.stopPropagation()}
             >
               <button
@@ -73,7 +73,7 @@ export default function AddFundsModal({ isOpen, onClose, onAdd, currency = 'RUB'
                       step="0.01"
                       min="0"
                       autoFocus
-                      className="w-full bg-dark/50 backdrop-blur-sm border-2 border-primary/30 rounded-xl px-6 py-4 text-2xl font-bold text-white focus:outline-none focus:border-primary transition-colors"
+                      className="w-full bg-dark/80 border-2 border-primary/30 rounded-xl px-6 py-4 text-2xl font-bold text-white focus:outline-none focus:border-primary transition-colors"
                     />
                     <span className="absolute right-6 top-1/2 -translate-y-1/2 text-2xl font-bold text-gray-400">
                       {symbol}
@@ -93,7 +93,7 @@ export default function AddFundsModal({ isOpen, onClose, onAdd, currency = 'RUB'
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setAmount(quickAmount.toString())}
-                        className="bg-dark-light/60 backdrop-blur-sm border border-primary/20 hover:border-primary/50 rounded-lg py-3 text-sm font-semibold transition-colors"
+                        className="bg-dark-light/80 border border-primary/20 hover:border-primary/50 rounded-lg py-3 text-sm font-semibold transition-colors"
                       >
                         {quickAmount}
                       </motion.button>
@@ -103,15 +103,24 @@ export default function AddFundsModal({ isOpen, onClose, onAdd, currency = 'RUB'
 
                 <motion.button
                   type="submit"
-                  whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   disabled={!amount || parseFloat(amount) <= 0}
-                  className="w-full bg-gradient-to-r from-primary via-accent to-secondary p-[2px] rounded-xl group disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-dark-light border-2 border-primary/30 rounded-xl px-8 py-4 flex items-center justify-center gap-3 hover:border-primary hover:shadow-[0_0_20px_rgba(108,99,255,0.3)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group relative overflow-hidden"
+                  onMouseMove={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    e.currentTarget.style.setProperty('--mouse-x', `${x}px`);
+                    e.currentTarget.style.setProperty('--mouse-y', `${y}px`);
+                  }}
                 >
-                  <div className="bg-dark-card/60 backdrop-blur-sm rounded-xl px-8 py-4 flex items-center justify-center gap-3 group-hover:bg-dark-card/30 transition-all duration-300 disabled:group-hover:bg-dark-card/60">
-                    <Plus className="w-5 h-5" />
-                    <span className="text-lg font-semibold">Добавить</span>
-                  </div>
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                       style={{
+                         background: 'radial-gradient(circle 100px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(108, 99, 255, 0.15), transparent)'
+                       }}
+                  />
+                  <Plus className="w-5 h-5 relative z-10" />
+                  <span className="text-lg font-semibold relative z-10">Добавить</span>
                 </motion.button>
               </form>
             </motion.div>

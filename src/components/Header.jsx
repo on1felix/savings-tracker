@@ -8,7 +8,7 @@ export default function Header({ user, onLogout, onOpenSettings }) {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-dark-card/80 backdrop-blur-xl rounded-xl border border-primary/20 animate-pulse-glow">
+            <div className="p-2 border border-primary/20 rounded-xl animate-pulse-glow">
               <Wallet className="w-6 h-6 text-primary" />
             </div>
             <GradientText
@@ -22,7 +22,7 @@ export default function Header({ user, onLogout, onOpenSettings }) {
 
           {user && (
             <div className="flex items-center gap-3">
-              <div className="hidden md:flex items-center gap-2 bg-dark-card/80 backdrop-blur-xl border border-primary/20 rounded-xl px-4 py-2">
+              <div className="hidden md:flex items-center gap-2 border border-primary/20 rounded-xl px-4 py-2">
                 <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center text-white font-semibold">
                   {user.name.charAt(0).toUpperCase()}
                 </div>
@@ -33,7 +33,7 @@ export default function Header({ user, onLogout, onOpenSettings }) {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={onOpenSettings}
-                className="p-2 bg-dark-card/80 backdrop-blur-xl border border-primary/20 rounded-xl hover:border-primary/40 transition-colors"
+                className="p-2 border border-primary/20 rounded-xl hover:border-primary/40 transition-colors"
                 title="Настройки"
               >
                 <Settings className="w-5 h-5 text-gray-300" />
