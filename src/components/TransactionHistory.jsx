@@ -45,7 +45,7 @@ export default function TransactionHistory({ transactions, currency = 'RUB', onD
             <History className="w-12 h-12 text-gray-500" />
           </div>
           <div>
-            <h3 className="text-xl font-semibold text-gray-400 mb-2">
+            <h3 className="text-xl font-semibold text-gray-400 mb-4">
               История пуста
             </h3>
             <p className="text-gray-500">
@@ -62,17 +62,17 @@ export default function TransactionHistory({ transactions, currency = 'RUB', onD
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3, duration: 0.6 }}
-      className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-3"
+      className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-6"
     >
-      <div className="flex items-center gap-2 mb-2">
-        <History className="w-4 h-4 text-primary" />
-        <h2 className="text-lg font-display font-bold">История пополнений</h2>
-        <span className="ml-auto text-xs text-gray-400 bg-dark-light px-2 py-1 rounded-full">
+      <div className="flex items-center gap-3 mb-4">
+        <History className="w-5 h-5 text-primary" />
+        <h2 className="text-xl font-display font-bold">История пополнений</h2>
+        <span className="ml-auto text-base text-gray-400 bg-dark-light px-3 py-1 rounded-full">
           {transactions.length} {transactions.length === 1 ? 'транзакция' : 'транзакций'}
         </span>
       </div>
 
-      <div className="space-y-1.5 max-h-[150px] overflow-y-auto pr-2 smooth-scroll">
+      <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 smooth-scroll">
         <AnimatePresence mode="popLayout">
           {transactions.map((transaction, index) => (
             <motion.div
@@ -82,17 +82,17 @@ export default function TransactionHistory({ transactions, currency = 'RUB', onD
               exit={{ opacity: 0, x: 20, height: 0, marginBottom: 0 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
               layout
-              className="bg-dark-light/30 border border-primary/10 rounded-xl p-2 flex items-center gap-2 group hover:border-primary/30 transition-colors"
+              className="bg-dark-light/30 border border-primary/10 rounded-xl p-3 flex items-center gap-3 group hover:border-primary/30 transition-colors"
             >
-              <div className="p-1.5 bg-success/10 rounded-lg">
-                <TrendingUp className="w-3.5 h-3.5 text-success" />
+              <div className="p-2 bg-success/10 rounded-lg">
+                <TrendingUp className="w-4 h-4 text-success" />
               </div>
 
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-white mb-0.5">
+                <div className="text-base font-semibold text-white mb-1">
                   +{transaction.amount.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {transaction.currency ? currencySymbols[transaction.currency] : symbol}
                 </div>
-                <div className="text-xs text-gray-400">
+                <div className="text-base text-gray-400">
                   {formatDate(transaction.created_at)}
                 </div>
               </div>
@@ -101,9 +101,9 @@ export default function TransactionHistory({ transactions, currency = 'RUB', onD
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => onDelete(transaction.id)}
-                className="p-1.5 hover:bg-red-500/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                className="p-2 hover:bg-red-500/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
               >
-                <Trash2 className="w-4 h-4 text-red-400" />
+                <Trash2 className="w-5 h-5 text-red-400" />
               </motion.button>
             </motion.div>
           ))}

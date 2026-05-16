@@ -70,7 +70,7 @@ export default function AuthModal({ isOpen, onClose, onLogin }) {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               transition={{ type: "spring", duration: 0.5 }}
-              className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-6 max-w-sm w-full relative"
+              className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-8 max-w-md w-full relative"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="mb-8 text-center">
@@ -89,7 +89,7 @@ export default function AuthModal({ isOpen, onClose, onLogin }) {
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-2">
                     Логин

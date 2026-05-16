@@ -42,7 +42,7 @@ export default function AddFundsModal({ isOpen, onClose, onAdd, currency = 'RUB'
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               transition={{ type: "spring", duration: 0.5 }}
-              className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-6 max-w-sm w-full relative"
+              className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-8 max-w-md w-full relative"
               onClick={(e) => e.stopPropagation()}
             >
               <button
@@ -52,14 +52,14 @@ export default function AddFundsModal({ isOpen, onClose, onAdd, currency = 'RUB'
                 <X className="w-6 h-6" />
               </button>
 
-              <div className="mb-6">
-                <h2 className="text-2xl font-display font-bold text-gradient mb-2">
+              <div className="mb-8">
+                <h2 className="text-3xl font-display font-bold text-gradient mb-2">
                   Пополнить копилку
                 </h2>
                 <p className="text-gray-400">Введите сумму пополнения</p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-2">
                     Сумма
@@ -73,9 +73,9 @@ export default function AddFundsModal({ isOpen, onClose, onAdd, currency = 'RUB'
                       step="0.01"
                       min="0"
                       autoFocus
-                      className="w-full bg-dark/80 border-2 border-primary/30 rounded-xl px-6 py-4 text-2xl font-bold text-white focus:outline-none focus:border-primary transition-colors"
+                      className="w-full bg-dark/80 border-2 border-primary/30 rounded-xl px-6 py-4 text-3xl font-bold text-white focus:outline-none focus:border-primary transition-colors"
                     />
-                    <span className="absolute right-6 top-1/2 -translate-y-1/2 text-2xl font-bold text-gray-400">
+                    <span className="absolute right-6 top-1/2 -translate-y-1/2 text-3xl font-bold text-gray-400">
                       {symbol}
                     </span>
                   </div>

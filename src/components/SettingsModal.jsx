@@ -27,7 +27,7 @@ export default function SettingsModal({ isOpen, onClose, currency, onCurrencyCha
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               transition={{ type: "spring", duration: 0.5 }}
-              className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-6 max-w-sm w-full relative"
+              className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-8 max-w-md w-full relative"
               onClick={(e) => e.stopPropagation()}
             >
               <button
