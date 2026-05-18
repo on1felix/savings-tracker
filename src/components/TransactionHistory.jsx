@@ -21,14 +21,12 @@ export default function TransactionHistory({ transactions, currency = 'RUB', onD
     if (diffMins < 1) return 'только что';
     if (diffMins < 60) return `${diffMins} мин. назад`;
     if (diffHours < 24) return `${diffHours} ч. назад`;
-    if (diffDays < 7) return `${diffDays} дн. назад`;
+    if (diffDays === 1) return 'вчера';
 
     return date.toLocaleDateString('ru-RU', {
-      day: 'numeric',
-      month: 'long',
-      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
-      hour: '2-digit',
-      minute: '2-digit'
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
     });
   };
 
