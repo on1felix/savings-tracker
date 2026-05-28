@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { Activity, Trophy, Coins, BarChart3, CalendarDays, Flame, TrendingUp, TrendingDown } from 'lucide-react';
+import CountUp from './CountUp';
 
 const currencySymbols = { RUB: '₽', USD: '$', EUR: '€', KGS: 'с' };
 
@@ -30,17 +31,10 @@ const SVG_W = 600;
 const SVG_H = 130;
 const DAYS = 14;
 
-// motion presets — вынесены, чтобы избежать двойных фигурных в JSX
 const cardMotion = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.5, delay: 0.25 },
-};
-const valueSwap = {
-  initial: { opacity: 0, y: 8 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -8 },
-  transition: { duration: 0.35 },
 };
 const chartFade = {
   initial: { opacity: 0 },
@@ -97,7 +91,6 @@ export default function SavingsStats({ transactions = [], currency = 'RUB' }) {
       .filter((t) => t.date.getMonth() === prevMonth && t.date.getFullYear() === prevYear)
       .reduce((s, t) => s + t.amount, 0);
 
-    // Дневные бакеты: последние DAYS дней, включая сегодня
     const days = [];
     const today = startOfDay(now);
     for (let i = DAYS - 1; i >= 0; i--) {
@@ -112,7 +105,6 @@ export default function SavingsStats({ transactions = [], currency = 'RUB' }) {
     }
     const maxDay = Math.max(...days.map((d) => d.amount), 1);
 
-    // Серия в днях подряд с пополнением, считая от сегодня назад
     let streak = 0;
     for (let i = days.length - 1; i >= 0; i--) {
       if (days[i].amount > 0) streak++;
@@ -135,7 +127,6 @@ export default function SavingsStats({ transactions = [], currency = 'RUB' }) {
   const monthDelta = stats.thisMonth - stats.prevMonth;
   const chartKey = `${transactions.length}-${stats.total}-${stats.thisMonth}`;
 
-  // SVG-бары
   const bars = useMemo(() => {
     if (!stats.days.length || stats.maxDay <= 0) return [];
     const slotW = SVG_W / stats.days.length;
@@ -185,30 +176,30 @@ export default function SavingsStats({ transactions = [], currency = 'RUB' }) {
         <MiniStat
           icon={<Coins className="w-4 h-4 text-success" />}
           label="Этот месяц"
-          value={`${fmtNum(stats.thisMonth)} ${symbol}`}
+          numValue={stats.thisMonth}
+          numSuffix={` ${symbol}`}
           delta={stats.count > 0 ? monthDelta : null}
           deltaSymbol={symbol}
-          swapKey={`m-${stats.thisMonth}`}
         />
         <MiniStat
           icon={<Trophy className="w-4 h-4 text-secondary" />}
           label="Самое крупное"
-          value={stats.biggest > 0 ? `${fmtNum2(stats.biggest)} ${symbol}` : '—'}
-          swapKey={`b-${stats.biggest}`}
+          numValue={stats.biggest}
+          numSuffix={` ${symbol}`}
+          numDecimals={2}
         />
         <MiniStat
           icon={<BarChart3 className="w-4 h-4 text-primary" />}
           label="Всего пополнений"
-          value={`${stats.count}`}
+          numValue={stats.count}
           sub={stats.avgDeposit > 0 ? `~${fmtNum2(stats.avgDeposit)} ${symbol} в среднем` : null}
-          swapKey={`c-${stats.count}`}
         />
         <MiniStat
           icon={<Flame className="w-4 h-4 text-secondary" />}
           label="Серия"
-          value={stats.streak > 0 ? `${stats.streak} ${pluralDays(stats.streak)}` : '—'}
+          numValue={stats.streak}
+          numSuffix={stats.streak > 0 ? ` ${pluralDays(stats.streak)}` : ''}
           sub="подряд с пополнением"
-          swapKey={`s-${stats.streak}`}
         />
       </div>
 
@@ -266,7 +257,6 @@ export default function SavingsStats({ transactions = [], currency = 'RUB' }) {
 
             <div className="grid mt-1.5" style={dateGridStyle}>
               {stats.days.map((d, i) => {
-                // Первый, последний и каждый второй — с месяцем, остальные только число
                 const showMonth = i === 0 || i === stats.days.length - 1 || d.start.getDate() === 1 || i % 3 === 0;
                 return (
                   <span
@@ -289,22 +279,27 @@ export default function SavingsStats({ transactions = [], currency = 'RUB' }) {
   );
 }
 
-function MiniStat({ icon, label, value, sub, delta, deltaSymbol, swapKey }) {
+function MiniStat({ icon, label, numValue, numPrefix, numSuffix, numDecimals, sub, delta, deltaSymbol }) {
+  const hasValue = numValue != null && numValue > 0;
   return (
     <div className="bg-dark-light/40 backdrop-blur-sm border border-primary/10 rounded-2xl p-3 hover:border-primary/30 transition-colors">
       <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mb-1">
         {icon}
         <span className="truncate">{label}</span>
       </div>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={swapKey || value}
-          {...valueSwap}
-          className="text-base md:text-lg font-display font-semibold text-white"
-        >
-          {value}
-        </motion.div>
-      </AnimatePresence>
+      <div className="text-base md:text-lg font-display font-semibold text-white">
+        {hasValue ? (
+          <CountUp
+            end={numValue}
+            duration={1.2}
+            prefix={numPrefix || ''}
+            suffix={numSuffix || ''}
+            decimals={numDecimals || 0}
+          />
+        ) : (
+          '—'
+        )}
+      </div>
       {delta != null && delta !== 0 && (
         <div
           className={`flex items-center gap-1 text-[11px] mt-0.5 ${

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { TrendingUp, CalendarClock, Zap, Sparkles, Target, Repeat } from 'lucide-react';
+import CountUp from './CountUp';
 
 const currencySymbols = { RUB: '₽', USD: '$', EUR: '€', KGS: 'с' };
 
@@ -8,8 +9,6 @@ const monthsRu = [
   'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
   'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря',
 ];
-
-const formatDateRu = (d) => `${d.getDate()} ${monthsRu[d.getMonth()]} ${d.getFullYear()}`;
 
 const pluralDays = (n) => {
   const m10 = n % 10;
@@ -29,7 +28,6 @@ const pluralDeposits = (n) => {
 
 const fmtNum = (n) => n.toLocaleString('ru-RU', { maximumFractionDigits: 2 });
 
-// motion presets вынесены в константы, чтобы избежать двойных фигурных в JSX
 const cardMotion = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
@@ -224,17 +222,35 @@ export default function SavingsForecast({
 
   const chartKey = `${transactions.length}-${currentAmount}-${targetAmount}`;
 
-  const etaText = forecast.done
+  // ETA — день числом через CountUp, месяц и год как суффикс
+  const etaDay =
+    forecast.eta && !forecast.done ? forecast.eta.getDate() : null;
+  const etaSuffix =
+    forecast.eta && !forecast.done
+      ? ` ${monthsRu[forecast.eta.getMonth()]} ${forecast.eta.getFullYear()}`
+      : '';
+  const etaFallback = forecast.done
     ? 'Уже достигнута 🎉'
-    : forecast.eta
-      ? formatDateRu(forecast.eta)
-      : 'Недостаточно данных';
+    : 'Недостаточно данных';
 
-  const intervalText =
-    forecast.avgInterval > 0
-      ? forecast.avgInterval >= 1
-        ? `каждые ~${forecast.avgInterval.toFixed(1)} ${pluralDays(Math.round(forecast.avgInterval))}`
-        : 'несколько раз в день'
+  const intervalNum =
+    forecast.avgInterval > 0 && forecast.avgInterval >= 1 ? forecast.avgInterval : null;
+  const intervalFallback =
+    forecast.avgInterval > 0 && forecast.avgInterval < 1
+      ? 'несколько раз в день'
+      : '—';
+  const intervalRoundedPlural = pluralDays(
+    intervalNum != null ? Math.max(1, Math.round(intervalNum)) : 1,
+  );
+
+  const daysNum =
+    !forecast.done && forecast.daysLeft != null && forecast.daysLeft > 0
+      ? forecast.daysLeft
+      : null;
+  const daysFallback = forecast.done
+    ? 'Готово!'
+    : forecast.daysLeft === 0
+      ? '0'
       : '—';
 
   return (
@@ -259,33 +275,35 @@ export default function SavingsForecast({
         <Stat
           icon={<CalendarClock className="w-4 h-4 text-accent" />}
           label="Цель будет достигнута"
-          value={etaText}
-          swapKey={etaText}
+          numValue={etaDay}
+          numSuffix={etaSuffix}
+          textValue={etaFallback}
+          swapKey={`eta-${etaDay ?? 'na'}-${etaSuffix}-${etaFallback}`}
           highlight
         />
         <Stat
           icon={<Repeat className="w-4 h-4 text-primary" />}
           label="Частота пополнений"
-          value={intervalText}
+          numValue={intervalNum}
+          numPrefix="каждые ~"
+          numSuffix={` ${intervalRoundedPlural}`}
+          numDecimals={1}
+          textValue={intervalFallback}
           sub={forecast.avgDeposit > 0 ? `~${fmtNum(forecast.avgDeposit)} ${symbol} за раз` : null}
-          swapKey={intervalText}
+          swapKey={`freq-${intervalNum ?? 'na'}-${forecast.avgDeposit}`}
         />
         <Stat
           icon={<Target className="w-4 h-4 text-success" />}
           label={forecast.done ? 'Поздравляю!' : 'Осталось'}
-          value={
-            forecast.done
-              ? '0'
-              : forecast.daysLeft != null
-                ? `${forecast.daysLeft} ${pluralDays(forecast.daysLeft)}`
-                : '—'
-          }
+          numValue={daysNum}
+          numSuffix={daysNum != null ? ` ${pluralDays(daysNum)}` : ''}
+          textValue={daysFallback}
           sub={
             !forecast.done && forecast.depositsLeft != null && forecast.depositsLeft > 0
               ? `~${forecast.depositsLeft} ${pluralDeposits(forecast.depositsLeft)} · ${fmtNum(forecast.remaining)} ${symbol}`
               : null
           }
-          swapKey={`${forecast.daysLeft}-${forecast.depositsLeft}`}
+          swapKey={`left-${forecast.daysLeft}-${forecast.depositsLeft}-${forecast.remaining}`}
         />
       </div>
 
@@ -404,7 +422,19 @@ export default function SavingsForecast({
   );
 }
 
-function Stat({ icon, label, value, sub, highlight, swapKey }) {
+function Stat({
+  icon,
+  label,
+  numValue,
+  numPrefix,
+  numSuffix,
+  numDecimals,
+  textValue,
+  sub,
+  highlight,
+  swapKey,
+}) {
+  const useNumeric = numValue != null && numValue > 0;
   return (
     <motion.div
       whileHover={hoverLift}
@@ -417,17 +447,33 @@ function Stat({ icon, label, value, sub, highlight, swapKey }) {
         {icon}
         <span>{label}</span>
       </div>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={swapKey || value}
-          {...valueSwap}
+      {useNumeric ? (
+        <div
           className={`text-base md:text-lg font-display font-semibold ${
             highlight ? 'text-gradient' : 'text-white'
           }`}
         >
-          {value}
-        </motion.div>
-      </AnimatePresence>
+          <CountUp
+            end={numValue}
+            duration={1.2}
+            prefix={numPrefix || ''}
+            suffix={numSuffix || ''}
+            decimals={numDecimals || 0}
+          />
+        </div>
+      ) : (
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={swapKey || textValue}
+            {...valueSwap}
+            className={`text-base md:text-lg font-display font-semibold ${
+              highlight ? 'text-gradient' : 'text-white'
+            }`}
+          >
+            {textValue}
+          </motion.div>
+        </AnimatePresence>
+      )}
       {sub && (
         <AnimatePresence mode="wait">
           <motion.div
