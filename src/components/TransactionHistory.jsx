@@ -8,6 +8,23 @@ const currencySymbols = {
   KGS: 'с',
 };
 
+// motion presets — вынесены, чтобы избежать двойных фигурных в JSX
+const cardMotion = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5, delay: 0.1 },
+};
+
+const itemMotion = {
+  initial: { opacity: 0, x: -16 },
+  animate: { opacity: 1, x: 0 },
+  exit: { opacity: 0, x: 16, scale: 0.95 },
+  transition: { duration: 0.3 },
+};
+
+const btnHover = { scale: 1.05 };
+const btnTap = { scale: 0.95 };
+
 export default function TransactionHistory({ transactions, currency = 'RUB', onDelete }) {
   const symbol = currencySymbols[currency] || '₽';
   const formatDate = (dateString) => {
@@ -26,17 +43,15 @@ export default function TransactionHistory({ transactions, currency = 'RUB', onD
     return date.toLocaleDateString('ru-RU', {
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric'
+      year: 'numeric',
     });
   };
 
   if (transactions.length === 0) {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.6 }}
-        className="bg-dark-card border border-primary/20 rounded-3xl p-12 text-center"
+        {...cardMotion}
+        className="bg-dark-card border border-primary/20 rounded-3xl p-8 text-center lg:flex-1 lg:min-h-0 flex flex-col items-center justify-center"
       >
         <div className="flex flex-col items-center gap-4">
           <div className="p-5 bg-dark-light rounded-full">
@@ -57,12 +72,10 @@ export default function TransactionHistory({ transactions, currency = 'RUB', onD
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.3, duration: 0.6 }}
-      className="backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-5"
+      {...cardMotion}
+      className="backdrop-blur-sm bg-dark-light/20 border-2 border-primary/20 rounded-3xl p-5 lg:flex-1 lg:min-h-0 flex flex-col"
     >
-      <div className="flex items-center gap-3 mb-3">
+      <div className="flex items-center gap-3 mb-3 shrink-0">
         <History className="w-5 h-5 text-primary" />
         <h2 className="text-xl font-display font-bold">История пополнений</h2>
         <span className="ml-auto text-base text-gray-400 bg-dark-light px-3 py-1 rounded-full">
@@ -70,19 +83,16 @@ export default function TransactionHistory({ transactions, currency = 'RUB', onD
         </span>
       </div>
 
-      <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2 smooth-scroll">
+      <div className="space-y-2 lg:flex-1 lg:min-h-0 max-h-[40vh] lg:max-h-none overflow-y-auto pr-2 smooth-scroll">
         <AnimatePresence mode="popLayout">
-          {transactions.map((transaction, index) => (
+          {transactions.map((transaction) => (
             <motion.div
               key={transaction.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20, height: 0, marginBottom: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
+              {...itemMotion}
               layout
               className="bg-dark-light/30 border border-primary/10 rounded-xl p-3 flex items-center gap-3 group hover:border-primary/30 transition-colors"
             >
-              <div className="p-2 bg-success/10 rounded-lg">
+              <div className="p-2 bg-success/10 rounded-lg shrink-0">
                 <TrendingUp className="w-4 h-4 text-success" />
               </div>
 
@@ -90,16 +100,16 @@ export default function TransactionHistory({ transactions, currency = 'RUB', onD
                 <div className="text-base font-semibold text-white mb-1">
                   +{transaction.amount.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {transaction.currency ? currencySymbols[transaction.currency] : symbol}
                 </div>
-                <div className="text-base text-gray-400">
+                <div className="text-sm text-gray-400">
                   {formatDate(transaction.created_at)}
                 </div>
               </div>
 
               <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+                whileHover={btnHover}
+                whileTap={btnTap}
                 onClick={() => onDelete(transaction.id)}
-                className="p-2 hover:bg-red-500/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                className="p-2 hover:bg-red-500/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100 shrink-0"
               >
                 <Trash2 className="w-5 h-5 text-red-400" />
               </motion.button>

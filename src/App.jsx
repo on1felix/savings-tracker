@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import AnimatedBackground from './components/AnimatedBackground';
 import Header from './components/Header';
 import SavingsCard from './components/SavingsCard';
+import SavingsForecast from './components/SavingsForecast';
+import SavingsStats from './components/SavingsStats';
 import AddFundsModal from './components/AddFundsModal';
 import TransactionHistory from './components/TransactionHistory';
 import AuthModal from './components/AuthModal';
@@ -43,7 +45,6 @@ export default function App() {
   }, []);
 
   const checkUser = async () => {
-    // Таймаут на случай зависания
     const timeout = setTimeout(() => {
       setLoading(false);
       setIsAuthModalOpen(true);
@@ -179,7 +180,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="relative min-h-screen bg-dark flex items-center justify-center">
+      <div className="relative h-screen overflow-hidden bg-dark flex items-center justify-center">
         <AnimatedBackground />
         <div className="relative z-10">
           <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
@@ -190,7 +191,7 @@ export default function App() {
 
   if (!user) {
     return (
-      <div className="relative min-h-screen bg-dark">
+      <div className="relative h-screen overflow-hidden bg-dark">
         <AnimatedBackground />
         <AuthModal
           isOpen={isAuthModalOpen}
@@ -202,31 +203,51 @@ export default function App() {
   }
 
   return (
-    <div className="relative min-h-screen bg-dark">
+    <div className="relative bg-dark min-h-screen lg:h-screen lg:overflow-hidden flex flex-col">
       <AnimatedBackground />
 
-      <div className="relative z-10">
+      <div className="relative z-10 flex flex-col flex-1 min-h-0">
         <Header
           user={user}
           onLogout={handleLogout}
           onOpenSettings={() => setIsSettingsOpen(true)}
         />
 
-        <main className="container mx-auto px-4 py-6 max-w-6xl">
-          <SavingsCard
-            currentAmount={currentAmount}
-            targetAmount={targetAmount}
-            percentage={percentage}
-            currency={currency}
-            onAddFunds={() => setIsModalOpen(true)}
-            onUpdateTarget={handleUpdateTarget}
-          />
+        <main className="container mx-auto px-4 py-6 max-w-7xl w-full lg:flex-1 lg:min-h-0 lg:overflow-hidden lg:flex lg:flex-col">
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] gap-5 lg:flex-1 lg:min-h-0">
+            <div className="order-2 lg:order-1 flex flex-col gap-5 lg:min-h-0">
+              <TransactionHistory
+                transactions={transactions}
+                currency={currency}
+                onDelete={handleDeleteTransaction}
+              />
 
-          <TransactionHistory
-            transactions={transactions}
-            currency={currency}
-            onDelete={handleDeleteTransaction}
-          />
+              <div className="lg:shrink-0">
+                <SavingsStats
+                  transactions={transactions}
+                  currency={currency}
+                />
+              </div>
+            </div>
+
+            <div className="order-1 lg:order-2 flex flex-col gap-5 lg:min-h-0 lg:overflow-y-auto smooth-scroll lg:pr-1">
+              <SavingsCard
+                currentAmount={currentAmount}
+                targetAmount={targetAmount}
+                percentage={percentage}
+                currency={currency}
+                onAddFunds={() => setIsModalOpen(true)}
+                onUpdateTarget={handleUpdateTarget}
+              />
+
+              <SavingsForecast
+                transactions={transactions}
+                currentAmount={currentAmount}
+                targetAmount={targetAmount}
+                currency={currency}
+              />
+            </div>
+          </div>
         </main>
       </div>
 
