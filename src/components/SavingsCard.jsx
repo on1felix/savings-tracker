@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { PiggyBank, Target, Plus, Edit2 } from 'lucide-react';
 import CountUp from './CountUp';
 import CircularProgress from './CircularProgress';
+import StarBorder from './StarBorder';
 
 const currencySymbols = {
   RUB: '₽',
@@ -105,26 +106,28 @@ export default function SavingsCard({ currentAmount, targetAmount, percentage, c
             transition={{ delay: 0.4, duration: 0.6 }}
             className="pt-2"
           >
-            <motion.button
-              whileTap={{ scale: 0.98 }}
-              onClick={onAddFunds}
-              className="w-full bg-dark-light border-2 border-primary/30 rounded-xl px-6 py-3 flex items-center justify-center gap-2 hover:border-primary hover:shadow-[0_0_20px_rgba(108,99,255,0.3)] transition-all duration-300 group relative overflow-hidden"
-              onMouseMove={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                e.currentTarget.style.setProperty('--mouse-x', `${x}px`);
-                e.currentTarget.style.setProperty('--mouse-y', `${y}px`);
-              }}
-            >
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                   style={{
-                     background: 'radial-gradient(circle 100px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(108, 99, 255, 0.15), transparent)'
-                   }}
-              />
-              <Plus className="w-5 h-5 relative z-10" />
-              <span className="text-lg font-semibold relative z-10">Пополнить</span>
-            </motion.button>
+            <StarBorder as="div" className="w-full" color="#00D9FF" speed="5s">
+              <motion.button
+                whileTap={{ scale: 0.98 }}
+                onClick={onAddFunds}
+                className="w-full bg-dark-light px-6 py-3 flex items-center justify-center gap-2 hover:shadow-[0_0_20px_rgba(108,99,255,0.3)] transition-all duration-300 group relative overflow-hidden"
+                onMouseMove={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = e.clientX - rect.left;
+                  const y = e.clientY - rect.top;
+                  e.currentTarget.style.setProperty('--mouse-x', `${x}px`);
+                  e.currentTarget.style.setProperty('--mouse-y', `${y}px`);
+                }}
+              >
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                     style={{
+                       background: 'radial-gradient(circle 100px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(108, 99, 255, 0.15), transparent)'
+                     }}
+                />
+                <Plus className="w-5 h-5 relative z-10" />
+                <span className="text-lg font-semibold relative z-10">Пополнить</span>
+              </motion.button>
+            </StarBorder>
           </motion.div>
         </div>
       </div>
